@@ -3,6 +3,7 @@
 document.getElementById('uploadButton').addEventListener('click', function () {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];  // 获取用户选择的文件
+  let fileName = file.name;
   console.log("File Name:" + file.name);
 
   if (file) {
@@ -13,13 +14,12 @@ document.getElementById('uploadButton').addEventListener('click', function () {
       console.log("File Content:");
       console.log(text);
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        // 向当前标签页的内容脚本发送消息
-        console.log("Try to Send Message")
+
         chrome.scripting.executeScript({
           target: { tabId: tabs[0].id },
-          function: sendTextMessage,
+          function: saveTextFile,
           function: displayText,
-          args: [text],  // 将文件内容作为参数传递
+          args: [fileName,text],  // 将文件内容作为参数传递
         });
       });
     };
@@ -27,17 +27,50 @@ document.getElementById('uploadButton').addEventListener('click', function () {
   }
 });
 
-// 在标签页上执行的函数，用于显示文本内容
-function sendTextMessage(text) {
-  // 发送消息给content.js
-  chrome.tabs.sendMessage({
-    action: 'displayText',
-    text: text,
-  })
-  console.log("Send Message Success!")
-  console.log("Text:" + text)
-}
 
+//监听显示按钮点击事件
+document.getElementById('loadSavedButton').addEventListener('click',function(){
+  
+  chrome.storage.local.get(['uploadedFiles'], function(result) {
+    if (chrome.runtime.lastError) {
+      console.error('Error retrieving data:', chrome.runtime.lastError);
+    } else {
+      // 检查是否成功检索到数据
+      if (result.hasOwnProperty('uploadedFiles')) {
+
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+
+          chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            function: displayText,
+            args: [text],  // 将文件内容作为参数传递
+          });
+        });
+      } else {
+        console.log('No stored data found.');
+      }
+    }
+  });
+});
+
+//保存文本到缓存文件
+function saveTextFile(fileName,text){
+
+  // 创建一个包含要存储数据的对象
+  const data = {
+    saveName: fileName,
+    uploadedFiles: text,
+
+  };
+
+  chrome.storage.local.set(data, function() {
+    if (chrome.runtime.lastError) {
+      console.error('Error storing data:', chrome.runtime.lastError);
+    } else {
+      console.log('Data stored successfully.');
+    }
+  });
+};
 
 //显示文本
 function displayText(text) {
