@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "摸鱼！启动！",
-    "version": "1.0.2",
+    "version": "1.0.1",
     "description": "开发ing",
     "permissions": [
         "activeTab",
