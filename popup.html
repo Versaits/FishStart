@@ -3,11 +3,18 @@
 <head>
   <title>Text Viewer</title>
   <meta charset="UTF-8">
+  <link rel="popup.css">
 </head>
 <body>
-  <h2>加载文件 20MB以内</h2>
+  <h2>上传文件</h2>
+  <p>建议20MB以内</p>
   <input type="file" id="fileInput" accept=".txt">
   <button id="uploadButton">加载新文本</button>
+
+  <label> 选择要加载的文件</label>
+  <select id="fileListSelect" name="selectFile"></select>
+
+
   <button id="loadSavedButton">加载已缓存文本</button>
   <p id="statusMessage"></p>
 

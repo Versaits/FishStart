@@ -1,6 +1,8 @@
 
 // 监听上传按钮点击事件
 document.getElementById('uploadButton').addEventListener('click', function () {
+
+  const statusMessage = document.getElementById('statusMessage');
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];  // 获取用户选择的文件
   let fileName = file.name;
@@ -9,17 +11,36 @@ document.getElementById('uploadButton').addEventListener('click', function () {
   if (file) {
     const reader = new FileReader();
     reader.onload = function (event) {
-      const text = event.target.result;  // 读取文件内容
+      const fileContent = event.target.result;  // 读取文件内容
       console.log("Read File Success! ");
       console.log("File Content:");
-      console.log(text);
+      console.log(fileName);
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
         chrome.scripting.executeScript({
           target: { tabId: tabs[0].id },
           function: saveTextFile,
           function: displayText,
-          args: [fileName,text],  // 将文件内容作为参数传递
+          args: [fileName, fileContent],  // 将文件内容作为参数传递
+        });
+      });
+
+      // 获取已上传的文件列表
+      chrome.storage.local.get(['uploadedFiles'], function (result) {
+        const uploadedFiles = result.uploadedFiles || [];
+
+        // 查找并替换同名的已上传文件
+        const existingFileIndex = uploadedFiles.findIndex(existingFile => existingFile.name === file.name);
+        if (existingFileIndex !== -1) {
+          uploadedFiles[existingFileIndex] = { name: file.name, content: fileContent };
+        } else {
+          uploadedFiles.push({ name: file.name, content: fileContent });
+        }
+
+        // 保存新的文件列表
+        chrome.storage.local.set({ 'uploadedFiles': uploadedFiles }, function () {
+          statusMessage.textContent = '文件上传成功!';
+          displayFileList(uploadedFiles);
         });
       });
     };
@@ -28,33 +49,42 @@ document.getElementById('uploadButton').addEventListener('click', function () {
 });
 
 
-//监听显示按钮点击事件
-document.getElementById('loadSavedButton').addEventListener('click',function(){
-  
-  chrome.storage.local.get(['uploadedFiles'], function(result) {
+//加载选择的文件
+document.getElementById('loadSavedButton').addEventListener('click', function () {
+  const fileListSelect = document.getElementById('fileListSelect');
+  const getSelectedOption = fileListSelect.options[fileListSelect.selectedIndex];
+  const getSelectedOptionName = getSelectedOption.text; 
+
+  console.log("On Click")
+  chrome.storage.local.get(['uploadedFiles'], function (result) {
+    const uploadedFiles = result.uploadedFiles || [];
+    const fileName = uploadedFiles.name;
+    const fileContent = uploadedFiles.content;
     if (chrome.runtime.lastError) {
       console.error('Error retrieving data:', chrome.runtime.lastError);
     } else {
-      // 检查是否成功检索到数据
-      if (result.hasOwnProperty('uploadedFiles')) {
+      if(uploadedFiles.length>0){
+        uploadedFiles.forEach(function(file,index){
+          if(file.name == getSelectedOptionName){
 
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-
-          chrome.scripting.executeScript({
-            target: { tabId: tabs[0].id },
-            function: displayText,
-            args: [text],  // 将文件内容作为参数传递
-          });
-        });
-      } else {
-        console.log('No stored data found.');
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+              chrome.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                function: displayText,
+                args: [file.name,file.content],
+              });
+            });
+          }
+        })
       }
     }
   });
 });
 
+
+
 //保存文本到缓存文件
-function saveTextFile(fileName,text){
+function saveTextFile(fileName, text) {
 
   // 创建一个包含要存储数据的对象
   const data = {
@@ -63,7 +93,7 @@ function saveTextFile(fileName,text){
 
   };
 
-  chrome.storage.local.set(data, function() {
+  chrome.storage.local.set(data, function () {
     if (chrome.runtime.lastError) {
       console.error('Error storing data:', chrome.runtime.lastError);
     } else {
@@ -73,7 +103,7 @@ function saveTextFile(fileName,text){
 };
 
 //显示文本
-function displayText(text) {
+function displayText(fileName, text) {
   const textDiv = document.createElement('div');
   textDiv.textContent = text;
   textDiv.innerText = text;
@@ -96,10 +126,8 @@ function displayText(text) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-  const fileInput = document.getElementById('fileInput');
-  const uploadButton = document.getElementById('uploadButton');
-  const statusMessage = document.getElementById('statusMessage');
   const fileList = document.getElementById('fileList');
+
 
   // 获取已上传的文件列表
   chrome.storage.local.get(['uploadedFiles'], function (result) {
@@ -107,42 +135,19 @@ document.addEventListener('DOMContentLoaded', function () {
     displayFileList(uploadedFiles);
   });
 
-  // 监听上传按钮的点击事件
-  uploadButton.addEventListener('click', function () {
-    const file = fileInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const fileContent = event.target.result;
-
-        // 获取已上传的文件列表
-        chrome.storage.local.get(['uploadedFiles'], function (result) {
-          const uploadedFiles = result.uploadedFiles || [];
-
-          // 查找并替换同名的已上传文件
-          const existingFileIndex = uploadedFiles.findIndex(existingFile => existingFile.name === file.name);
-          if (existingFileIndex !== -1) {
-            uploadedFiles[existingFileIndex] = { name: file.name, content: fileContent };
-          } else {
-            uploadedFiles.push({ name: file.name, content: fileContent });
-          }
-
-          // 保存新的文件列表
-          chrome.storage.local.set({ 'uploadedFiles': uploadedFiles }, function () {
-            statusMessage.textContent = 'File uploaded and cached.';
-            displayFileList(uploadedFiles);
-          });
-        });
-      };
-      reader.readAsText(file);
-    }
-  });
-
   // 显示已上传的文件列表
   function displayFileList(files) {
     fileList.innerHTML = '';
-    files.forEach(function (file, index) {
+    const fileListSelect = document.getElementById('fileListSelect');
+    files.forEach(function (file) {
+      const option = document.createElement('option');
       const listItem = document.createElement('li');
+      //插入选择栏
+      option.value = file.name;
+      option.textContent = file.name;
+      fileListSelect.appendChild(option);
+
+      //插入显示列表
       listItem.textContent = file.name;
       fileList.appendChild(listItem);
     });
