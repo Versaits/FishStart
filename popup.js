@@ -46,6 +46,7 @@ document.getElementById('uploadButton').addEventListener('click', function () {
     };
     reader.readAsText(file);  // 以文本形式读取文件
   }
+  window.location.reload();
 });
 
 
@@ -53,9 +54,8 @@ document.getElementById('uploadButton').addEventListener('click', function () {
 document.getElementById('loadSavedButton').addEventListener('click', function () {
   const fileListSelect = document.getElementById('fileListSelect');
   const getSelectedOption = fileListSelect.options[fileListSelect.selectedIndex];
-  const getSelectedOptionName = getSelectedOption.text; 
+  const getSelectedOptionName = getSelectedOption.text;
 
-  console.log("On Click")
   chrome.storage.local.get(['uploadedFiles'], function (result) {
     const uploadedFiles = result.uploadedFiles || [];
     const fileName = uploadedFiles.name;
@@ -63,15 +63,15 @@ document.getElementById('loadSavedButton').addEventListener('click', function ()
     if (chrome.runtime.lastError) {
       console.error('Error retrieving data:', chrome.runtime.lastError);
     } else {
-      if(uploadedFiles.length>0){
-        uploadedFiles.forEach(function(file,index){
-          if(file.name == getSelectedOptionName){
+      if (uploadedFiles.length > 0) {
+        uploadedFiles.forEach(function (file, index) {
+          if (file.name == getSelectedOptionName) {
 
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
               chrome.scripting.executeScript({
                 target: { tabId: tabs[0].id },
                 function: displayText,
-                args: [file.name,file.content],
+                args: [file.name, file.content],
               });
             });
           }
@@ -79,6 +79,7 @@ document.getElementById('loadSavedButton').addEventListener('click', function ()
       }
     }
   });
+  
 });
 
 
@@ -150,6 +151,9 @@ document.addEventListener('DOMContentLoaded', function () {
       //插入显示列表
       listItem.textContent = file.name;
       fileList.appendChild(listItem);
+
+
+
     });
   }
 });
