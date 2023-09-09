@@ -6,9 +6,11 @@ chrome.runtime.onInstalled.addListener(function () {
       const uploadedFiles = result.uploadedFiles || [];
       const fileName = uploadedFiles.saveName;
       const fileContent = uploadedFiles.text;
+      const readRecord = uploadedFiles.position;
+
       uploadedFiles.forEach(function (file, index) {
         const blob = new Blob([file.content], { type: 'text/plain' });
-        const objectURL = URL.createObjectURL(blob);
+        // const objectURL = URL.createObjectURL(blob);
   
         // 将文件保存到 web_accessible_resources，以便在浏览器关闭后也可以访问
         chrome.runtime.getPackageDirectoryEntry(function (root) {

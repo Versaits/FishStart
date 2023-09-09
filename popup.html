@@ -16,11 +16,12 @@
   <label> 选择要加载的文件</label>
   <select id="fileListSelect" name="selectFile"></select>
 
-
+  <label for="quantity">单行字数：</label>
+  <input type="number" id="setLineChars" value="30" name="quantity" min="20" max="100" step="1">
   <button id="loadSavedButton">加载</button>
   <p id="statusMessage"></p>
 
-  <h2>已缓存的文本</h2>
+  <h2>已缓存的文本</h2> 
   <ul id="fileList"></ul>
 
   <script src="popup.js"></script>

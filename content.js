@@ -20,3 +20,23 @@
 //   document.body.appendChild(div);
 // }
 
+document.addEventListener('DOMContentLoaded',function(){
+  const textDiv = document.createElement('div');
+
+  textDiv.style.id = 'textDiv';
+  textDiv.style.position = 'fixed';
+  textDiv.style.bottom = '-1px';
+  textDiv.style.left = '0px';
+  textDiv.style.height = '21px';
+  textDiv.style.width = '500px';
+  textDiv.style.background = 'rgb(222,225,230)';
+  textDiv.style.border = '1px solid rgba(0,0,0,0.2)';
+  textDiv.style.borderRadius = '4px';
+  textDiv.style.lineHeight = '21px';
+  textDiv.style.overflow = 'hidden';
+  textDiv.style.whiteSpace = 'nowrap';
+  textDiv.style.color = 'rgb(102,106,109)';
+  textDiv.style.zIndex = '9999';
+  // textDiv.style.display ='none';
+  document.body.appendChild(textDiv);
+})

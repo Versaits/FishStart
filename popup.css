@@ -65,3 +65,17 @@ input[type="file"] {
     width: 200px; /* 输入框宽度 */
   }
   
+#textDiv{
+  position: fixed;
+  bottom: -1px;
+  left: 0px;
+  height: 21px;
+  width: auto;
+  background :rgb(222,225,230);
+  border : 1px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  line-height: 21px;
+  overflow: hidden;
+  white-space: nowrap;
+  color: rgb(102,106,109);
+}
